@@ -49,7 +49,7 @@
 **Goal:** External services + async thinking
 
 - [ ] Image upload (Cloudinary / S3)  
-- [ ] Email notification (SendGrid)  
+- [ ] Email notification (SendGrid)  -PEEJ
 - [ ] Matching logic (lost ↔ found)  
 - [ ] Error handling middleware - MEDS
 
