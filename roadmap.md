@@ -23,14 +23,14 @@
 **Goal:** Real API, real data flow
 
 ### Data models
-- [x] User  
-- [ ] Item (lost / found)  
-- [ ] Claim (who claimed what)  
+- [x] User 
+- [x] Item (lost / found) 
+- [x] Claim (who claimed what) 
 
 ### API routes
 - [ ] Create item  
-- [ ] Get items (filter: lost/found)  
-- [ ] Update status (admin only)  
+- [ ] Get items (filter: lost/found) - PEEJ
+- [ ] Update status (admin only) 
 - [ ] Claim item (user → admin approval)  
 
 ### Concepts learned
@@ -38,7 +38,7 @@
 - Role-based access  
 - Data relationships in MongoDB  
 
-### 📌 Checkpoint
+### 📌 Checkpoint - JEZ
 - Postman tests all endpoints  
 - No frontend yet  
 
@@ -51,7 +51,7 @@
 - [ ] Image upload (Cloudinary / S3)  
 - [ ] Email notification (SendGrid)  
 - [ ] Matching logic (lost ↔ found)  
-- [ ] Error handling middleware  
+- [ ] Error handling middleware - MEDS
 
 ### 📌 Checkpoint
 - Item image stored externally  
@@ -63,11 +63,10 @@
 
 **Goal:** Consume your API cleanly
 
-- [ ] React + Vite setup  
-- [ ] Axios service layer  
-- [ ] Auth context (store JWT)  
-- [ ] Protected routes  
-- [ ] Forms (create item, login)  
+- [ ] React + Vite setup
+- [ ] Axios service layer - MEDS
+- [ ] Protected routes - PEEJ
+- [ ] Forms (create item, login)
 
 ### 📌 Checkpoint
 - No Axios inside components  
@@ -79,7 +78,7 @@
 
 **Goal:** Separation of concerns
 
-- [ ] Admin dashboard  
+- [ ] Admin dashboard - NO NEED
 - [ ] User dashboard  
 - [ ] Role-based UI rendering  
 - [ ] Loading / error states  
@@ -114,13 +113,3 @@
 - Express feels hard now → easier later  
 
 ---
-
-## Your next immediate task
-
-**Do ONE of these today:**
-
-1. Finish `protect` middleware and test it  
-2. Create `Item` model  
-3. Protect a test route using JWT  
-
-Reply with **which one you’re doing**, and guidance will stay scoped to that step only.
