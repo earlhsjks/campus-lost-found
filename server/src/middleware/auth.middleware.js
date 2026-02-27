@@ -1,5 +1,5 @@
-const Session = require('./models/Session');
-const User = require('./models/User');
+const Session = require('../models/Session');
+const User = require('../models/User');
 
 const protect = async (req, res, next) => {
     const token = req.cookies?.session_token;
@@ -27,4 +27,4 @@ const protect = async (req, res, next) => {
     next();
 };
 
-module.exports = protect;
+module.exports = { protect };

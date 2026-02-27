@@ -38,10 +38,10 @@ const itemSchema = new mongoose.Schema({
     status: {
         type: String,
         enum: ['open', 'matched', 'claimed', 'closed'],
-        deafult: 'open'
+        default: 'open'
     },
 
-    attrubutes: {
+    attributes: {
         color: String,
         brand: String,
         serialNumber: String
@@ -52,6 +52,6 @@ const itemSchema = new mongoose.Schema({
         ref: 'Item'
     }
 
-}, { timestamp: true });
+}, { timestamps: true });
 
 module.exports = mongoose.model('Item', itemSchema)
