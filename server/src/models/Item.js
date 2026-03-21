@@ -23,7 +23,12 @@ const itemSchema = new mongoose.Schema({
     locationId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Location',
-        required: true,
+        required: true
+    },
+
+    image: {
+        type: String,
+        required: true
     },
 
     reportedBy: {
@@ -44,7 +49,8 @@ const itemSchema = new mongoose.Schema({
     attributes: {
         color: String,
         brand: String,
-        serialNumber: String
+        serialNumber: String,
+        lastSeen: Date
     },
 
     matchedItemId: {

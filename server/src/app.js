@@ -9,8 +9,9 @@ app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 
-app.use('/api/auth', require('./routes/auth.routes'));
-app.use('/api/items', require('./routes/item.routes'));
+app.use('/api/auth', require('./routes/auth.route'));
+app.use('/api/item', require('./routes/item.route'));
+app.use('api/claim', require('./routes/claim.route'));
 
 app.get('/', (req, res) => {
   res.send('API running');

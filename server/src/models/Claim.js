@@ -1,13 +1,13 @@
 const mongoose = require('mongoose');
 
 const claimSchema = new mongoose.Schema({
-    item_id: {
+    itemId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Item',
         required: true
     },
 
-    claimant_id: {
+    claimantID: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
@@ -15,7 +15,7 @@ const claimSchema = new mongoose.Schema({
 
     proof: {
         description: String,
-        secret_answer: String
+        secretAnswer: String
     },
 
     status: {
@@ -24,12 +24,12 @@ const claimSchema = new mongoose.Schema({
         default: 'pending'
     },
 
-    reviewed_by: {
+    reviewedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
 
-    reviewed_at: Date
+    reviewedAt: Date
 }, { timestamps: true })
 
 module.exports = mongoose.model('Claim', claimSchema)

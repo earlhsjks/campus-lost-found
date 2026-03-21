@@ -8,12 +8,12 @@ const register = async (req, res) => {
         const { name, email, password } = req.body;
 
         if (!email || !password) {
-            return res.status(400).json({ message: 'Email and password required.' });
+            return res.status(400).json({ success: false,  message: 'Email and password required.' });
         }
 
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            return res.status(409).json({ message: 'User with this email already exist.' });
+            return res.status(409).json({ success: false, message: 'User with this email already exist.' });
         }
 
         const saltRounds = 10;
@@ -24,6 +24,7 @@ const register = async (req, res) => {
         });
 
         res.status(201).json({
+            success: true, 
             message: 'User registered successfully',
             user: {
                 id: user._id,
@@ -34,7 +35,7 @@ const register = async (req, res) => {
         });
 
     } catch (err) {
-        res.status(500).json({ message: `Server error: ${err}` })
+        res.status(500).json({ success: false, message: `Server error: ${err}` })
     };
 };
 
@@ -43,17 +44,17 @@ const login = async (req, res) => {
         const { email, password } = req.body;
 
         if (!email || !password) {
-            return res.status(400).json({ message: 'Email and password required.' })
+            return res.status(400).json({ success: false,  message: 'Email and password required.' })
         };
 
         const user = await User.findOne({ email })
         if (!user) {
-            return res.status(404).json({ message: 'User not found.' })
+            return res.status(404).json({ success: false,  message: 'User not found.' })
         };
 
         const checkPassword = await bcrypt.compare(password, user.password);
         if (!checkPassword) {
-            return res.status(409).json({ message: 'Incorrect email or password.' })
+            return res.status(409).json({ success: false,  message: 'Incorrect email or password.' })
         };
 
         await Session.deleteMany({ userId: user._id });
@@ -63,6 +64,7 @@ const login = async (req, res) => {
 
         res.cookie('session_token', token, { httpOnly: true, maxAge: 3600 * 1000 });
         res.status(200).json({
+            success: true, 
             message: 'Login successful',
             token,
             user: {
@@ -73,18 +75,18 @@ const login = async (req, res) => {
         });
 
     } catch (err) {
-        return res.status(500).json({ message: `Server error: ${err}` })
+        return res.status(500).json({ success: false,  message: `Server error: ${err}` })
     }
 };
 
 const logout = async (req, res) => {
     const token = req.cookies.session_token;
-    if (!token) return res.status(401).json({ message: 'No token provided' });
+    if (!token) return res.status(401).json({ success: false,  message: 'No token provided' });
 
     await Session.deleteOne({ token });
     res.clearCookie('session_token');
 
-    res.json({ message: 'Logged out successfully' });
+    res.json({ success: true,  message: 'Logged out successfully' });
 };
 
 module.exports = {

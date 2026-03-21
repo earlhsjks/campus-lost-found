@@ -1,38 +1,45 @@
 const Item = require('../models/Item')
+const { hasPermission } = ('../utils/permissions.util')
+const { upload } = require('../config/cloudinary')
 
-const create = async (req, res) => { 
-    try { 
+const create = async (req, res) => {
+    try {
         const { type, title, description, categoryId, locationId, attributes } = req.body;
 
-        if (!title || !title || !categoryId || !locationId || !type) { 
-            return res.status(400).json({ message: 'Missing required fields' })
+        if (!type || !title || !categoryId || !locationId || !req.file.path ) {
+            return res.status(400).json({ success: false, message: 'Missing required fields' })
         }
 
-        const newItemData = await Item.create({ 
+        const imageUrl = req.file.path;
+
+        const newItemData = await Item.create({
             type: type,
             title: title,
             description: description,
             categoryId: categoryId,
             locationId: locationId,
-            reportedBy: { 
+            image: imageUrl, 
+            reportedBy: {
                 userId: req.user._id,
                 role: req.user.role
-                },
+            },
             attributes: attributes
-         });
-         
-         res.status(201).json({
+        });
+
+        res.status(201).json({
+            success: true,
             message: 'Item created successfully',
             item: newItemData
-         })
+        })
 
     } catch (err) {
-        res.status(500).json({ message: `Server error: ${err}` })
+        console.log(err)
+        res.status(500).json({ success: false, message: `Server error: ${err}` })
     }
 }
 
 const update = async (req, res) => {
-    try { 
+    try {
         const { id } = req.params;
         const { type, title, description, categoryId, locationId, attributes } = req.body;
 
@@ -46,35 +53,44 @@ const update = async (req, res) => {
         }, { new: true });
 
         if (!updatedItem) {
-            return res.status(404).json({ message: 'Item not found' });
+            return res.status(404).json({ success: false, message: 'Item not found' });
         }
 
         res.status(200).json({
+            success: true,
             message: 'Item updated successfully',
             item: updatedItem
         });
     } catch (err) {
-        res.status(500).json({ message: `Server error: ${err}` });
+        res.status(500).json({ success: false, message: `Server error: ${err}` });
     }
 }
 
 const updateStatus = async (req, res) => {
     try {
+        const { currentRole } = req.user.role;
         const { id } = req.params;
         const { status } = req.body;
+
+        const isAllowed = hasPermission(currentRole, 'admin');
+
+        if (!isAllowed) {
+            res.status(401).json({ success: false, message: 'Action denied.' })
+        }
 
         const updatedItem = await Item.findByIdAndUpdate(id, { status }, { new: true });
 
         if (!updatedItem) {
-            return res.status(404).json({ message: 'Item not found' });
+            return res.status(404).json({ success: false, message: 'Item not found' });
         }
 
         res.status(200).json({
+            success: true,
             message: 'Item status updated successfully',
             item: updatedItem
         });
     } catch (err) {
-        res.status(500).json({ message: `Server error: ${err}` });
+        res.status(500).json({ success: false, message: `Server error: ${err}` });
     }
 }
 
@@ -85,15 +101,16 @@ const deleteItem = async (req, res) => {
         const deletedItem = await Item.findByIdAndDelete(id);
 
         if (!deletedItem) {
-            return res.status(404).json({ message: 'Item not found' });
+            return res.status(404).json({ success: false, message: 'Item not found' });
         }
 
         res.status(200).json({
+            success: true,
             message: 'Item deleted successfully',
             item: deletedItem
         });
     } catch (err) {
-        res.status(500).json({ message: `Server error: ${err}` });
+        res.status(500).json({ success: false, message: `Server error: ${err}` });
     }
 }
 
@@ -135,7 +152,7 @@ const getByAttributes = async (req, res) => {
 
 }
 
-module.exports = { 
+module.exports = {
     create,
     update,
     deleteItem,
