@@ -28,10 +28,10 @@
 - [x] Claim (who claimed what) 
 
 ### API routes
-- [ ] Create item  
+- [x] Create item  
 - [ ] Get items (filter: lost/found) - PEEJ
-- [ ] Update status (admin only) 
-- [ ] Claim item (user → admin approval)  
+- [x] Update status (admin only) 
+- [x] Claim item (user → admin approval)  
 
 ### Concepts learned
 - REST design  
@@ -48,8 +48,8 @@
 
 **Goal:** External services + async thinking
 
-- [ ] Image upload (Cloudinary / S3)  
-- [ ] Email notification (SendGrid)  -PEEJ
+- [x] Image upload (Cloudinary / S3)  
+- [ ] Email notification (SendGrid) - PEEJ
 - [ ] Matching logic (lost ↔ found)  
 - [ ] Error handling middleware - MEDS
 
@@ -64,8 +64,8 @@
 **Goal:** Consume your API cleanly
 
 - [ ] React + Vite setup
-- [ ] Axios service layer - MEDS
-- [ ] Protected routes - PEEJ
+- [ ] Axios service layer ??
+- [ ] Protected routes
 - [ ] Forms (create item, login)
 
 ### 📌 Checkpoint
@@ -79,7 +79,7 @@
 **Goal:** Separation of concerns
 
 - [ ] Admin dashboard - NO NEED
-- [ ] User dashboard  
+- [ ] User dashboard - SHARED DASHBOARD FOR ALL, ROLE-BASED ACCESS
 - [ ] Role-based UI rendering  
 - [ ] Loading / error states  
 
