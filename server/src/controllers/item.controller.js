@@ -161,38 +161,105 @@ const getAll = async (req, res) => {
 }
 
 const getByUser = async (req, res) => {
+    try {
+        const userId = req.user._id;
 
+        const userItems = await Item.find({ "reportedBy.userId": userId })
+            .sort({ createdAt: -1 })
+            .populate('categoryId', 'name')
+            .populate('locationId', 'name');
+
+        res.status(200).json({
+            success: true,
+            count: userItems.length,
+            items: userItems
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            success: false,
+            message: `Error fetching your items: ${err.message}`
+        });
+    }
 }
 
 const getByCategory = async (req, res) => {
-
+    try {
+        const { categoryId } = req.params;
+        const items = await Item.find({ categoryId }).populate('categoryId locationId', 'name');
+        res.status(200).json({ success: true, count: items.length, items });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
 }
 
 const getByLocation = async (req, res) => {
-
+    try {
+        const { locationId } = req.params;
+        const items = await Item.find({ locationId }).populate('categoryId locationId', 'name');
+        res.status(200).json({ success: true, count: items.length, items });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
 }
 
 const getByType = async (req, res) => {
-
+    try {
+        const { type } = req.params;
+        const items = await Item.find({ type }).populate('categoryId locationId', 'name');
+        res.status(200).json({ success: true, count: items.length, items });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
 }
 
 const getByStatus = async (req, res) => {
-
+    try {
+        const { status } = req.params; 
+        const items = await Item.find({ status }).populate('categoryId locationId', 'name');
+        res.status(200).json({ success: true, count: items.length, items });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
 }
 
 const getByDateRange = async (req, res) => {
+    try {
+        const { startDate, endDate } = req.query;
+        const items = await Item.find({
+            createdAt: {
+                $gte: new Date(startDate),
+                $lte: new Date(endDate)
+            }
+        }).sort({ createdAt: -1 });
 
+        res.status(200).json({ success: true, count: items.length, items });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Invalid date format" });
+    }
 }
 
 const getByAttributes = async (req, res) => {
-
+    try {
+        const items = await Item.find({ attributes: req.query });
+        res.status(200).json({ success: true, count: items.length, items });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
 }
-
+     
 module.exports = {
     create,
     update,
     deleteItem,
     updateStatus,
     getById,
-    getAll
+    getAll,
+    getByUser,
+    getByCategory,
+    getByLocation,
+    getByType,
+    getByStatus,
+    getByDateRange,
+    getByAttributes
 };
