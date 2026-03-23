@@ -117,11 +117,47 @@ const deleteItem = async (req, res) => {
 // TODO: Get items (filter: lost/found) - PEEJ
 
 const getById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const item = await Item.findById(id)
+            .populate('categoryId', 'name') 
+            .populate('locationId', 'name');
 
+        if (!item) {
+            return res.status(404).json({ success: false, message: 'Item not found' });
+        }
+
+        res.status(200).json({
+            success: true,
+            item: item
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: `Server error: ${err.message}` });
+}
 }
 
-const getAll = async (req, res) => {
-
+const getAll = async (req, res) => {   
+    try {
+        const { type, categoryId, status } = req.query;
+        let query = {};
+        if (type) query.type = type; 
+        if (categoryId) query.categoryId = categoryId;
+        if (status) query.status = status;
+    
+        const items = await Item.find(query)
+            .sort({ createdAt: -1 })
+            .populate('categoryId', 'name')
+            .populate('locationId', 'name');
+    
+        res.status(200).json({
+            success: true,
+            count: items.length,
+            items: items
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, message: `Server error: ${err.message}` });
+    }
 }
 
 const getByUser = async (req, res) => {
@@ -156,5 +192,7 @@ module.exports = {
     create,
     update,
     deleteItem,
-    updateStatus
+    updateStatus,
+    getById,
+    getAll
 };
