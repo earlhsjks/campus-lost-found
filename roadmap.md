@@ -29,7 +29,7 @@
 
 ### API routes
 - [x] Create item  
-- [ ] Get items (filter: lost/found) - PEEJ
+- [ ] Get items (filter: lost/found) - PEEJ 
 - [x] Update status (admin only) 
 - [x] Claim item (user → admin approval)  
 
@@ -49,8 +49,8 @@
 **Goal:** External services + async thinking
 
 - [x] Image upload (Cloudinary / S3)  
-- [ ] Email notification (SendGrid) - PEEJ
-- [ ] Matching logic (lost ↔ found)  
+- [-] Email notification (SendGrid) - PEEJ
+- [x] Matching logic (lost ↔ found)  
 - [ ] Error handling middleware - MEDS
 
 ### 📌 Checkpoint
@@ -59,18 +59,18 @@
 
 ---
 
-## PHASE 3 — Frontend (React, intentionally delayed)
+    ## PHASE 3 — Frontend (React, intentionally delayed)
 
-**Goal:** Consume your API cleanly
+    **Goal:** Consume your API cleanly
 
-- [ ] React + Vite setup
-- [ ] Axios service layer ??
-- [ ] Protected routes
-- [ ] Forms (create item, login)
+    - [x] React + Vite setup
+    - [x] Axios service layer ??
+    - [x] Protected routes
+    - [x] Forms (create item, login)
 
-### 📌 Checkpoint
-- No Axios inside components  
-- Auth survives page refresh  
+    ### 📌 Checkpoint
+    - No Axios inside components  
+    - Auth survives page refresh  
 
 ---
 

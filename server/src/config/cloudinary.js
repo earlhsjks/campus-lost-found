@@ -1,7 +1,6 @@
 const cloudinary = require('cloudinary').v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const CloudinaryStorage = require('multer-storage-cloudinary');
 const multer = require('multer');
-
 const { CLOUD_NAME, API_KEY, API_SECRET } = process.env;
 
 cloudinary.config({
@@ -11,7 +10,7 @@ cloudinary.config({
 });
 
 const storage = new CloudinaryStorage({
-    cloudinary: cloudinary,
+    cloudinary: require('cloudinary'), 
     params: {
         folder: 'lost_and_found_items',
         allowed_formats: ['jpg', 'jpeg', 'png', 'heic', 'heif'],
@@ -20,14 +19,14 @@ const storage = new CloudinaryStorage({
                 width: 800,
                 height: 800,
                 crop: 'limit',
-                quality: 'auto:good',
-                fetch_format: 'auto',
+                quality: 'auto:best',
+                fetch_format: 'webp',
                 angle: 'auto',
                 flags: 'strip_profile'
             }
         ]
     }
-})
+});
 
 const upload = multer({ storage: storage });
 
