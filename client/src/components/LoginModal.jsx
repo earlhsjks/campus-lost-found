@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import { X } from 'lucide-react';
+import { X, AlertCircle } from 'lucide-react';
+import { Button, Input } from './ui';
 
 export default function LoginModal() {
   const { showLoginModal, setShowLoginModal, login, signup } = useAuth();
-
-  // Toggle between Login and Sign Up views
   const [isLogin, setIsLogin] = useState(true);
-
-  // Form State
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -16,26 +14,24 @@ export default function LoginModal() {
 
   if (!showLoginModal) return null;
 
-  // --- NEW: Password Validation Helper ---
   const validatePassword = (pass) => {
-    if (pass.length < 8) return "Password must be at least 8 characters long.";
-    if (!/[A-Z]/.test(pass)) return "Password must contain at least one uppercase letter.";
-    if (!/[a-z]/.test(pass)) return "Password must contain at least one lowercase letter.";
-    if (!/[0-9]/.test(pass)) return "Password must contain at least one number.";
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(pass)) return "Password must contain at least one special character.";
-    return null; // Null means validation passed
+    if (pass.length < 8) return 'Password must be at least 8 characters long.';
+    if (!/[A-Z]/.test(pass)) return 'Password must contain at least one uppercase letter.';
+    if (!/[a-z]/.test(pass)) return 'Password must contain at least one lowercase letter.';
+    if (!/[0-9]/.test(pass)) return 'Password must contain at least one number.';
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(pass)) return 'Password must contain at least one special character.';
+    return null;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMsg(''); // Clear old errors
+    setErrorMsg('');
 
-    // --- NEW: Run validation if signing up ---
     if (!isLogin) {
       const pwdError = validatePassword(password);
       if (pwdError) {
         setErrorMsg(pwdError);
-        return; // Stop submission if validation fails
+        return;
       }
     }
 
@@ -47,14 +43,12 @@ export default function LoginModal() {
     }
 
     if (!result.success) {
-      setErrorMsg(result.message); // Show backend error to user
+      setErrorMsg(result.message);
     }
   };
 
-  // Reset form and close
   const handleClose = () => {
     setShowLoginModal(false);
-    // Reset back to login mode and clear inputs for the next time it opens
     setTimeout(() => {
       setIsLogin(true);
       setName('');
@@ -65,102 +59,144 @@ export default function LoginModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-foreground/90 p-4">
-      <div className="bg-white w-full max-w-md rounded-lg p-8 relative transition-all duration-300">
-        <button
-          onClick={handleClose}
-          className="absolute top-4 right-4 p-2 text-gray-400 hover:text-foreground hover:bg-gray-100 rounded-md transition-colors"
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-foreground/40 backdrop-blur-sm p-4"
+        onClick={handleClose}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          transition={{ duration: 0.3, type: 'spring', stiffness: 300, damping: 30 }}
+          className="bg-card border border-border w-full max-w-md rounded-2xl p-8 md:p-10 relative shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
         >
-          <X className="w-6 h-6" strokeWidth={2.5} />
-        </button>
+          {/* Close Button */}
+          <motion.button
+            onClick={handleClose}
+            className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <X className="w-5 h-5" strokeWidth={2.5} />
+          </motion.button>
 
-        {/* Dynamic Header */}
-        <h2 className="font-extrabold text-3xl mb-2 text-foreground">
-          {isLogin ? 'Welcome Back.' : 'Join the Campus.'}
-        </h2>
-        <p className="text-gray-600 font-medium mb-8">
-          {isLogin
-            ? 'Log in to claim items or report something you found.'
-            : 'Create an account to help keep our campus connected.'}
-        </p>
+          {/* Header */}
+          <motion.div
+            key={isLogin ? 'login' : 'signup'}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.2 }}
+          >
+            <h2 className="font-display font-bold text-3xl md:text-4xl mb-2 gradient-text">
+              {isLogin ? 'Welcome Back.' : 'Join the Campus.'}
+            </h2>
+            <p className="text-muted-foreground font-medium mb-8">
+              {isLogin
+                ? 'Log in to claim items or report something you found.'
+                : 'Create an account to help keep our campus connected.'}
+            </p>
+          </motion.div>
 
-        {errorMsg && (
-          <div className="bg-red-100 text-red-700 p-3 rounded-md mb-6 font-bold text-sm">
-            {errorMsg}
-          </div>
-        )}
-        
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Only show Name field if we are signing up */}
-          {!isLogin && (
-            <div>
-              <label className="block text-sm font-bold text-foreground mb-2 uppercase tracking-wider">Full Name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Earl Jeno Garcia"
-                required={!isLogin}
-                className="w-full bg-muted text-foreground p-4 rounded-md border-2 border-transparent focus:bg-white focus:border-primary focus:outline-none transition-colors font-medium"
-              />
-            </div>
-          )}
+          {/* Error Message */}
+          <AnimatePresence>
+            {errorMsg && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-6 flex gap-3 items-start"
+              >
+                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                <span className="font-medium text-sm">{errorMsg}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          <div>
-            <label className="block text-sm font-bold text-foreground mb-2 uppercase tracking-wider">Student Email</label>
-            <input
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <AnimatePresence>
+              {!isLogin && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Input
+                    type="text"
+                    label="Full Name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Juan Dela Cruz"
+                    required={!isLogin}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <Input
               type="email"
+              label="Student Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="student@ndmu.edu.ph"
+              placeholder="jdcruz@ndmu.edu.ph"
               required
-              className="w-full bg-muted text-foreground p-4 rounded-md border-2 border-transparent focus:bg-white focus:border-primary focus:outline-none transition-colors font-medium"
             />
-          </div>
 
-          <div>
-            <label className="block text-sm font-bold text-foreground mb-2 uppercase tracking-wider">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              className="w-full bg-muted text-foreground p-4 rounded-md border-2 border-transparent focus:bg-white focus:border-primary focus:outline-none transition-colors font-medium"
-            />
-            {/* --- NEW: Password requirements hint for sign ups --- */}
-            {!isLogin && (
-              <p className="text-xs text-gray-500 mt-2 font-medium">
-                Must be at least 8 characters, include an uppercase letter, a number, and a special character.
-              </p>
-            )}
-          </div>
+            <div>
+              <Input
+                type="password"
+                label="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+              />
+              {!isLogin && (
+                <motion.p 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-xs text-muted-foreground mt-2 font-medium"
+                >
+                  Min. 8 characters, 1 uppercase, 1 number, 1 special character
+                </motion.p>
+              )}
+            </div>
 
-          <button
-            type="submit"
-            className="w-full bg-primary text-white font-extrabold text-lg py-4 rounded-md transition-all duration-200 hover:scale-[1.02] hover:bg-blue-600"
-          >
-            {isLogin ? 'Log In' : 'Create Account'}
-          </button>
-        </form>
-
-        {/* Toggle Footer */}
-        <div className="mt-6 text-center pt-6 border-t-2 border-muted">
-          <p className="text-sm font-medium text-gray-500">
-            {isLogin ? "Don't have an account? " : "Already have an account? "}
-            <button
-              type="button"
-              onClick={() => {
-                setIsLogin(!isLogin);
-                setErrorMsg(''); // Clear errors when toggling views
-              }}
-              className="text-primary font-bold hover:underline"
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              className="w-full mt-6"
             >
-              {isLogin ? 'Sign up' : 'Log in'}
-            </button>
-          </p>
-        </div>
-      </div>
-    </div>
+              {isLogin ? 'Log In' : 'Create Account'}
+            </Button>
+          </form>
+
+          {/* Toggle Footer */}
+          <motion.div className="mt-8 pt-6 border-t border-border text-center">
+            <p className="text-sm text-muted-foreground">
+              {isLogin ? "Don't have an account? " : 'Already have an account? '}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setErrorMsg('');
+                }}
+                className="text-accent font-semibold hover:text-accent/80 transition-colors"
+              >
+                {isLogin ? 'Sign up' : 'Log in'}
+              </button>
+            </p>
+          </motion.div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 }

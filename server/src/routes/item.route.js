@@ -5,7 +5,7 @@ const {
     create, update, deleteItem, updateStatus, getById, 
     getByUser, getByCategory, getByLocation, getByStatus,
     getByDateRange, getByAttributes, getAll, getMatches,
-    getLocations, getCategories } = require('../controllers/item.controller');
+    getLocations, getCategories,updateItemStatus } = require('../controllers/item.controller');
 const { getItemComments, addComment } = require('../controllers/comment.controller');
 const { upload } =  require('../config/cloudinary');
 
@@ -14,7 +14,7 @@ router.put('/update/:id', protect, update);
 router.delete('/delete/:id', protect, deleteItem);
 router.put('/updateStatus/:id', protect, updateStatus);
 
-// Get Items
+// Items
 router.get('/getAll', getAll);
 router.get('/getById/:id', getById);
 router.get('/getByUser', protect, getByUser);
@@ -24,6 +24,7 @@ router.get('/getByStatus', protect, getByStatus);
 router.get('/getByDateRange', protect, getByDateRange);
 router.get('/getByAttributes', protect, getByAttributes);
 router.get('/matches/:id', protect, getMatches);
+router.put('/:id/status', protect, updateItemStatus);
 
 // Chat / Coordination Routes
 router.get('/comments/:id', getItemComments);

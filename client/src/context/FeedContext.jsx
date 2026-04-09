@@ -63,7 +63,7 @@ export function FeedProvider({ children }) {
   };
 
   return (
-    <FeedContext.Provider value={{ feedItems, addItem, isLoading }}>
+    <FeedContext.Provider value={{ feedItems, addItem, isLoading, fetchItems }}>
       {children}
     </FeedContext.Provider>
   );

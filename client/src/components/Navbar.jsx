@@ -1,95 +1,123 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { PackageSearch, LogOut, User } from 'lucide-react';
+import { Button } from './ui';
 import NotificationBell from './NotificationBell';
-import api from '../services/api'; // Make sure this points to your axios instance!
 
 export default function Navbar() {
-  const { user, setUser, setShowLoginModal } = useAuth();
+  const { user, logout, setShowLoginModal } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
-      await api.post('/auth/logout'); 
-    } catch (error) {
-      console.error("Logout failed on backend", error);
-    } finally {
-      setUser(null);
+      await logout();
       navigate('/');
+    } catch (error) {
+      console.error('Logout failed:', error);
     }
   };
 
   return (
-    <nav className="bg-white shadow-sm border-b-2 border-gray-100 sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+    <nav className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-sm supports-[backdrop-filter]:bg-background/60">
+      <div className="container-custom">
+        <div className="flex justify-between items-center h-16 md:h-20">
           
           {/* LEFT SIDE: Brand & Logo */}
-          <Link to="/" className="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity">
-            <div className="bg-primary text-white p-2 rounded-lg">
-              <PackageSearch className="w-6 h-6" strokeWidth={2.5} />
-            </div>
-            <span className="font-extrabold text-xl tracking-tight text-gray-900 hidden sm:block">
-              Campus Found.
-            </span>
-          </Link>
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Link 
+              to="/" 
+              className="flex items-center gap-3 group hover:opacity-80 transition-opacity"
+            >
+              <motion.div 
+                className="bg-gradient-accent p-2 rounded-xl text-white shadow-accent"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <PackageSearch className="w-5 h-5 md:w-6 md:h-6" strokeWidth={2.5} />
+              </motion.div>
+              <span className="font-display font-bold text-lg md:text-xl gradient-text hidden sm:block">
+                Campus Found.
+              </span>
+            </Link>
+          </motion.div>
 
           {/* RIGHT SIDE: Navigation & Auth */}
-          <div className="flex items-center gap-4 sm:gap-6">
+          <motion.div 
+            className="flex items-center gap-3 md:gap-4"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3 }}
+          >
             
             {/* The "Report Item" Button (Always visible) */}
-            <Link 
-              to="/report" 
-              className="font-bold text-sm text-gray-600 hover:text-primary transition-colors hidden sm:block"
+            <Button
+              onClick={() => {
+                if (user) {
+                  navigate('/report');
+                } else {
+                  setShowLoginModal(true);
+                }
+              }}
+              variant="ghost"
+              size="md"
+              className="hidden sm:inline-flex text-sm"
             >
               Report Item
-            </Link>
-
-            <div className="h-6 w-px bg-gray-200 hidden sm:block"></div>
+            </Button>
 
             {user ? (
               // --- LOGGED IN STATE ---
-              <div className="flex items-center gap-4 sm:gap-5">
+              <div className="flex items-center gap-3 md:gap-4">
                 
                 {/* 1. The Bell */}
                 <NotificationBell />
                 
                 {/* 2. User Avatar */}
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 text-primary flex items-center justify-center border-2 border-blue-200">
-                    {/* Show the first letter of their name, or a default icon */}
+                <motion.div 
+                  className="flex items-center gap-2 cursor-pointer"
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-accent/10 text-accent flex items-center justify-center border-2 border-accent/30 font-display font-bold text-sm">
                     {user.name ? (
-                      <span className="font-extrabold text-sm">{user.name.charAt(0).toUpperCase()}</span>
+                      user.name.charAt(0).toUpperCase()
                     ) : (
                       <User className="w-4 h-4" />
                     )}
                   </div>
-                  <span className="font-bold text-sm text-gray-700 hidden md:block">
-                    {user.name?.split(' ')[0]} {/* Just show their first name */}
+                  <span className="font-medium text-sm text-foreground hidden md:block truncate max-w-24">
+                    {user.name?.split(' ')[0]}
                   </span>
-                </div>
+                </motion.div>
 
                 {/* 3. Logout Button */}
-                <button 
+                <motion.button
                   onClick={handleLogout}
-                  className="text-gray-400 hover:text-red-500 transition-colors p-2"
+                  className="text-muted-foreground hover:text-red-500 transition-colors p-2 hover:bg-red-50/30 rounded-lg"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
                   title="Logout"
                 >
                   <LogOut className="w-5 h-5" />
-                </button>
+                </motion.button>
               </div>
             ) : (
               // --- LOGGED OUT STATE ---
-              <button 
+              <Button
                 onClick={() => setShowLoginModal(true)}
-                className="bg-primary text-white px-5 py-2 rounded-md font-bold hover:bg-blue-600 transition-colors"
+                variant="primary"
+                size="md"
               >
                 Log In
-              </button>
+              </Button>
             )}
 
-          </div>
+          </motion.div>
         </div>
       </div>
     </nav>

@@ -2,6 +2,7 @@ const Item = require('../models/Item')
 const Claim = require('../models/Claim')
 const Category = require('../models/Category')
 const Location = require('../models/Location')
+const Match = require('../models/Match')
 const { hasPermission } = ('../utils/permissions.util')
 const matching = require('../utils/matching.util')
 const matchQueue = require('../config/redis');
@@ -35,13 +36,22 @@ const create = async (req, res) => {
             attributes: parsedAttributes
         });
 
-        matchQueue.add({ itemId: newItemData._id }).catch(err => {
-            console.error("Queue error (Ignored):", err.message);
+        // Queue the matching job
+        matchQueue.add({ itemId: newItemData._id }, {
+            attempts: 3,
+            backoff: {
+                type: 'exponential',
+                delay: 2000
+            }
+        }).then(job => {
+            console.log(`📝 Matching job queued for item ${newItemData._id} (Job ID: ${job.id})`);
+        }).catch(err => {
+            console.error(`❌ Queue error for item ${newItemData._id}:`, err.message);
         });
 
         res.status(201).json({
             success: true,
-            message: 'Item created successfully. Matching in background.',
+            message: 'Item created successfully. Checking for matches...',
             item: newItemData
         });
 
@@ -276,11 +286,61 @@ const getByAttributes = async (req, res) => {
 }
 
 const getMatches = async (req, res) => {
-    const item = await Item.findById(req.params.id);
-    if (!item) return res.status(404).json({ error: 'Item not found' });
+    try {
+        const { id } = req.params;
+        
+        // Fetch the item
+        const item = await Item.findById(id);
+        if (!item) {
+            return res.status(404).json({ success: false, message: 'Item not found' });
+        }
 
-    const topMatches = await matching.findMatches(item);
-    res.json({ matches: topMatches });
+        // THE FIX 1: Search BOTH columns using $or
+        const matches = await Match.find({ 
+            $or: [{ itemId: id }, { matchedItemId: id }],
+            status: 'potential' 
+        })
+        // THE FIX 2: Populate BOTH sides of the match
+        .populate({
+            path: 'itemId matchedItemId', 
+            select: 'type title description image categoryId locationId attributes createdAt reportedBy',
+            populate: [
+                { path: 'categoryId', select: 'name' },
+                { path: 'locationId', select: 'name' }
+            ]
+        })
+        .sort({ score: -1 })
+        .limit(5);
+
+        // THE FIX 3: Conditionally map the "other" item
+        const formattedMatches = matches.map(m => {
+            // Figure out which item is the one we are currently viewing
+            const isSourceItem = m.itemId && m.itemId._id.toString() === id;
+            
+            // Grab the item sitting on the other side of the relationship
+            const otherItem = isSourceItem ? m.matchedItemId : m.itemId;
+
+            // Failsafe in case a matched item was deleted from the database
+            if (!otherItem) return null;
+
+            return {
+                matchId: m._id,
+                score: m.score,
+                matchedItem: otherItem, // Send the correct "other" item back to React
+                createdAt: m.createdAt
+            };
+        }).filter(Boolean); // filter(Boolean) removes any null values
+
+        res.status(200).json({
+            success: true,
+            itemId: id,
+            matchCount: formattedMatches.length,
+            matches: formattedMatches
+        });
+    } catch (err) {
+        console.error('Error fetching matches:', err);
+        res.status(500).json({ success: false, message: `Server error: ${err.message}` });
+    }
 }
 
 const getLocations = async (req, res) => {
@@ -309,6 +369,33 @@ const getCategories = async (req, res) => {
     }
 };
 
+const updateItemStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body; // e.g., 'resolved' or 'claimed'
+
+        // 1. Find the item
+        const item = await Item.findById(id);
+        if (!item) {
+            return res.status(404).json({ message: "Item not found" });
+        }
+
+        // 2. SECURITY CHECK: Ensure the logged-in user actually owns this post
+        if (item.reportedBy.userId.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: "Unauthorized to update this item." });
+        }
+
+        // 3. Update the status
+        item.status = status;
+        await item.save();
+
+        res.status(200).json({ success: true, item });
+    } catch (error) {
+        console.error("Error updating status:", error);
+        res.status(500).json({ message: "Failed to update item status." });
+    }
+};
+
 module.exports = {
     create,
     update,
@@ -325,5 +412,6 @@ module.exports = {
     getByAttributes,
     getMatches,
     getLocations,
-    getCategories
+    getCategories,
+    updateItemStatus
 };

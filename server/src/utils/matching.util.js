@@ -1,4 +1,6 @@
 const Item = require('../models/Item');
+const Notification = require('../models/Notification');
+const Match = require('../models/Match');
 
 const DAY = 24 * 60 * 60 * 1000
 
@@ -32,6 +34,15 @@ const findMatches = async (item) => {
         for (const matchObj of topMatches) {
             const matchedItem = matchObj.item;
 
+            // Save the match record to database
+            await Match.create({
+                itemId: item._id,
+                matchedItemId: matchedItem._id,
+                score: matchObj.score,
+                status: 'potential'
+            });
+
+            // Notify the owner of the matched item
             await Notification.create({
                 recipientId: matchedItem.reportedBy.userId,
                 type: 'match_found',
@@ -39,6 +50,7 @@ const findMatches = async (item) => {
                 relatedItemId: item._id
             });
 
+            // Notify the owner of the new item
             await Notification.create({
                 recipientId: item.reportedBy.userId,
                 type: 'match_found',

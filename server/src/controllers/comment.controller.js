@@ -1,6 +1,8 @@
 const Comment = require('../models/Comment');
 const Session = require('../models/Session');
-const User = require('../models/User'); 
+const User = require('../models/User');
+const Item = require('../models/Item');
+const Notification = require('../models/Notification'); 
 
 // 1. Fetch all messages for an item
 const getItemComments = async (req, res) => {
@@ -44,6 +46,20 @@ const addComment = async (req, res) => {
             senderName: user.name,
             text: text
         });
+
+        // Get the item to find the owner
+        const item = await Item.findById(id);
+        if (item && item.reportedBy?.userId) {
+            // Only create notification if the commenter is NOT the post owner
+            if (!item.reportedBy.userId.equals(user._id)) {
+                await Notification.create({
+                    recipientId: item.reportedBy.userId,
+                    type: 'new_comment',
+                    message: `${user.name} commented on your ${item.type} item: "${item.title}"`,
+                    relatedItemId: id
+                });
+            }
+        }
 
         // Send the newly created comment back to React so it instantly appears in the UI
         res.status(201).json(newComment);

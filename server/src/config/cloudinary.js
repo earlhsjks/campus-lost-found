@@ -22,6 +22,7 @@ const storage = new CloudinaryStorage({
                 quality: 'auto:best',
                 fetch_format: 'webp',
                 angle: 'auto',
+                format: 'auto',
                 flags: 'strip_profile'
             }
         ]

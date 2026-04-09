@@ -4,9 +4,17 @@ import { AuthProvider } from './context/AuthContext';
 import { FeedProvider } from './context/FeedContext'; 
 import Home from './pages/Home';
 import Report from './pages/Report';
-import ItemDetails from './pages/ItemDetails'; 
+import ItemDetails from './pages/ItemDetails';
+import Matches from './pages/Matches';
 import LoginModal from './components/LoginModal';
 import Navbar from './components/Navbar';
+
+const allowedOrigins = [
+  'https://seegson.fun',     // Production
+  'http://localhost:5173',   // Local Development
+  'http://127.0.0.1:5173'    // Alternative Local IP
+];
+
 
 function App() {
   return (
@@ -20,7 +28,8 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/report" element={<Report />} />
-                <Route path="/item/:id" element={<ItemDetails />} /> 
+                <Route path="/item/:id" element={<ItemDetails />} />
+                <Route path="/matches/:id" element={<Matches />} />
               </Routes>
             </main>
           </div>

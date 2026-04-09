@@ -1,144 +1,214 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import PostCard from '../components/PostCard';
 import { useAuth } from '../context/AuthContext';
 import { useFeed } from '../context/FeedContext';
+import { Button, SectionLabel } from '../components/ui';
+import { MapPin } from 'lucide-react';
+
+const LOCATIONS = ['Teston Hall', 'Creegan Hall', 'Doherty Hall', 'Gymnasium'];
 
 export default function MainLayout() {
-    const navigate = useNavigate();
-    const { user, setShowLoginModal } = useAuth();
-    const { feedItems, isLoading } = useFeed();
+  const navigate = useNavigate();
+  const { user, setShowLoginModal } = useAuth();
+  const { feedItems, isLoading, fetchItems } = useFeed();
+  const [activeFilter, setActiveFilter] = useState(null);
 
-    const [activeFilter, setActiveFilter] = useState(null);
+  useEffect(() => {
+    fetchItems();
+  }, [user]);
 
-    const displayedItems = activeFilter
-        ? feedItems.filter(item => item.locationId?.name === activeFilter)
-        : feedItems;
+  const displayedItems = activeFilter
+    ? feedItems.filter(item => item.locationId?.name === activeFilter)
+    : feedItems;
 
-    return (
-        <div className="min-h-screen w-full">
-            {/* Top Navbar (Mobile only, hidden on desktop for a cleaner app feel) */}
-            <nav className="md:hidden bg-primary text-white p-4 sticky top-0 z-50">
-                <h1 className="font-extrabold text-xl tracking-tight">Campus Found.</h1>
-            </nav>
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      },
+    },
+  };
 
-            {/* Main Container - strictly constrained to max-w-7xl per design system */}
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 sticky top-8">
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.3 },
+    },
+  };
 
-                {/* 12-Column Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+  return (
+    <div className="min-h-screen w-full bg-background">
+      {/* Main Feed Section */}
+      <section className="container-custom py-12">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+          {/* LEFT SIDEBAR - Navigation */}
+          <div className="hidden md:block md:col-span-3">
+            <div className="sticky top-24 space-y-4">
+              <div className="space-y-3">
+                <Button
+                  onClick={() => navigate('/')}
+                  variant={activeFilter ? 'ghost' : 'primary'}
+                  className="w-full"
+                  size="md"
+                >
+                  Latest Feed
+                </Button>
+                <Button
+                  onClick={() => user ? navigate('/report?type=lost') : setShowLoginModal(true)}
+                  variant="outline"
+                  className="w-full"
+                  size="md"
+                >
+                  Report Lost
+                </Button>
+                <Button
+                  onClick={() => user ? navigate('/report?type=found') : setShowLoginModal(true)}
+                  variant="outline"
+                  className="w-full"
+                  size="md"
+                >
+                  Found Item
+                </Button>
+              </div>
+            </div>
+          </div>
 
-                    {/* LEFT SIDEBAR (Navigation) - Takes up 3 columns */}
-                    <div className="hidden md:block md:col-span-3">
-                        <div className="sticky top-8">
+          {/* CENTER COLUMN - Feed */}
+          <motion.div
+            className="md:col-span-6 space-y-6"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            {/* Feed Header */}
+            <motion.div variants={itemVariants}>
+              <div className="mb-2">
+                <SectionLabel>Latest Activity</SectionLabel>
+              </div>
+              <h2 className="font-display font-bold text-3xl">Recent Reports</h2>
+              <p className="text-muted-foreground font-medium mt-2">
+                New items from the campus community
+              </p>
+            </motion.div>
 
-                            {/* Placeholder for Navigation Links */}
-                            <div className="flex flex-col space-y-2">
-                                <div className="flex flex-col space-y-2">
-                                    <button onClick={() => navigate('/')} className="w-full bg-primary text-white font-semibold py-3 px-4 rounded-md transition-all duration-200 hover:scale-105 text-center">
-                                        Latest Feed
-                                    </button>
-                                    <button
-                                        onClick={() => user ? navigate('/report') : setShowLoginModal(true)}
-                                        className="w-full bg-transparent text-foreground font-semibold py-3 px-4 rounded-md transition-all duration-200 hover:bg-white hover:scale-105 text-center"
-                                    >
-                                        Report Lost Item
-                                    </button>
-                                    <button
-                                        onClick={() => user ? navigate('/report') : setShowLoginModal(true)}
-                                        className="w-full bg-transparent text-foreground font-semibold py-3 px-4 rounded-md transition-all duration-200 hover:bg-white hover:scale-105 text-center"
-                                    >
-                                        I Found Something
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+            {/* Loading State */}
+            {isLoading && (
+              <motion.div
+                variants={itemVariants}
+                className="border-2 border-dashed border-border rounded-xl p-12 flex flex-col items-center justify-center"
+              >
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                  className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full mb-4"
+                />
+                <h3 className="font-semibold text-foreground">Fetching latest items...</h3>
+              </motion.div>
+            )}
+
+            {/* Empty State */}
+            {!isLoading && feedItems.length === 0 && (
+              <motion.div
+                variants={itemVariants}
+                className="rounded-xl border border-border p-12 text-center bg-muted/30"
+              >
+                <div className="text-6xl mb-4">📭</div>
+                <h3 className="font-display font-bold text-2xl mb-2">It's quiet out here.</h3>
+                <p className="text-muted-foreground">No items reported yet. Be the first!</p>
+              </motion.div>
+            )}
+
+            {/* Empty Filter State */}
+            {!isLoading && feedItems.length > 0 && displayedItems.length === 0 && (
+              <motion.div
+                variants={itemVariants}
+                className="rounded-xl border border-border p-12 text-center bg-muted/30"
+              >
+                <h3 className="font-display font-bold text-2xl mb-2">No items at this location</h3>
+                <p className="text-muted-foreground mb-4">
+                  Try a different location or clear the filter.
+                </p>
+                <Button
+                  onClick={() => setActiveFilter(null)}
+                  variant="outline"
+                  size="sm"
+                >
+                  Clear Filter
+                </Button>
+              </motion.div>
+            )}
+
+            {/* Feed Items */}
+            {!isLoading && displayedItems.length > 0 && (
+              displayedItems.map((item) => (
+                <motion.div
+                  key={item._id}
+                  variants={itemVariants}
+                >
+                  <PostCard item={item} />
+                </motion.div>
+              ))
+            )}
+          </motion.div>
+
+          {/* RIGHT SIDEBAR - Filters */}
+          <div className="hidden md:block md:col-span-3">
+            <div className="sticky top-24">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.3 }}
+                className="bg-gradient-accent/5 border border-accent/30 rounded-2xl p-6 backdrop-blur-sm"
+              >
+                <div className="flex justify-between items-start mb-5">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <MapPin className="w-4 h-4 text-accent" />
+                      <h3 className="font-display font-bold text-lg">Hot Zones</h3>
                     </div>
-
-                    {/* CENTER COLUMN (The Feed) - Takes up 6 columns */}
-                    {/* CENTER COLUMN (The Feed) */}
-                    <div className="md:col-span-6 space-y-6">
-
-                        <div className="bg-white p-6 rounded-lg mb-6">
-                            <h2 className="font-extrabold text-2xl mb-2">Happening Now</h2>
-                            <p className="text-gray-600 font-medium">Scroll to see recently lost or found items around campus.</p>
-                        </div>
-
-                        {/* NEW: Handle Loading State */}
-                        {isLoading ? (
-                            <div className="bg-muted border-4 border-dashed border-gray-300 rounded-lg p-12 flex flex-col items-center justify-center text-gray-500">
-                                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-                                <h3 className="font-bold text-lg">Fetching latest items...</h3>
-                            </div>
-                        ) : feedItems.length === 0 ? (
-                            <div className="bg-white rounded-lg p-12 text-center">
-                                <h3 className="font-extrabold text-2xl mb-2">It's quiet out here.</h3>
-                                <p className="text-gray-600 font-medium">No items have been reported yet.</p>
-                            </div>
-                        ) : displayedItems.length === 0 ? (
-                            <div className="bg-white rounded-lg p-12 text-center">
-                                <h3 className="font-extrabold text-2xl mb-2">It's quiet out here.</h3>
-                                <p className="text-gray-600 font-medium">
-                                    {activeFilter ? `No items found at ${activeFilter}.` : 'No items have been reported yet.'}
-                                </p>
-                                {/* Add a reset button if they are stuck in an empty filter */}
-                                {activeFilter && (
-                                    <button
-                                        onClick={() => setActiveFilter(null)}
-                                        className="mt-6 font-bold text-primary hover:underline"
-                                    >
-                                        Clear Filter
-                                    </button>
-                                )}
-                            </div>
-                        ) : (
-                            // NEW: Use displayedItems instead of feedItems
-                            displayedItems.map(item => (
-                                <PostCard key={item._id} item={item} />
-                            ))
-                        )}
-                    </div>
-
-                    {/* RIGHT SIDEBAR (Filters/Stats) - Takes up 3 columns */}
-                    <div className="hidden md:block md:col-span-3">
-                        <div className="sticky top-8 space-y-6">
-
-                            {/* Quick Filters */}
-                            <div className="bg-accent p-6 rounded-lg text-white transition-all duration-300">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="font-extrabold text-xl">Hot Zones</h3>
-                                    {/* Show a "Clear" button if a filter is active */}
-                                    {activeFilter && (
-                                        <button
-                                            onClick={() => setActiveFilter(null)}
-                                            className="text-xs font-bold bg-white/20 px-2 py-1 rounded hover:bg-white/40 transition-colors"
-                                        >
-                                            CLEAR
-                                        </button>
-                                    )}
-                                </div>
-
-                                <div className="flex flex-col space-y-2">
-                                    {['Teston Hall', 'Creegan Hall', 'Doherty Hall', 'Gymnasium'].map(location => (
-                                        <button
-                                            key={location}
-                                            onClick={() => setActiveFilter(activeFilter === location ? null : location)}
-                                            className={`text-left font-bold py-2 px-3 rounded-md transition-all duration-200 ${activeFilter === location
-                                                    ? 'bg-white text-accent scale-[1.02]' // Active state: Pure white block
-                                                    : 'bg-transparent text-white hover:bg-white/20' // Inactive state
-                                                }`}
-                                        >
-                                            # {location}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
+                    <p className="text-xs text-muted-foreground">Filter by location</p>
+                  </div>
+                  {activeFilter && (
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setActiveFilter(null)}
+                      className="text-xs font-bold text-accent hover:text-accent/70 transition-colors"
+                    >
+                      ✕ Clear
+                    </motion.button>
+                  )}
                 </div>
-            </main>
+
+                <div className="space-y-2">
+                  {LOCATIONS.map((location) => (
+                    <motion.button
+                      key={location}
+                      onClick={() => setActiveFilter(activeFilter === location ? null : location)}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`w-full text-left font-medium py-3 px-4 rounded-lg transition-all duration-200 ${
+                        activeFilter === location
+                          ? 'bg-accent text-white shadow-accent'
+                          : 'bg-muted/50 text-foreground hover:bg-muted'
+                      }`}
+                    >
+                      # {location}
+                    </motion.button>
+                  ))}
+                </div>
+              </motion.div>
+            </div>
+          </div>
         </div>
-    );
+      </section>
+    </div>
+  );
 }
