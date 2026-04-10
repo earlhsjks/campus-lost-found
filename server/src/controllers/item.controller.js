@@ -153,7 +153,7 @@ const getById = async (req, res) => {
         const item = await Item.findById(id)
             .populate('categoryId', 'name')
             .populate('locationId', 'name')
-            .populate('userId', 'name')
+            .populate('reportedBy.userId', 'name')
 
         if (!item) {
             return res.status(404).json({ success: false, message: 'Item not found' });
