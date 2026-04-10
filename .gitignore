@@ -1,59 +1,30 @@
-# =========================
-# Node / Backend (Express)
-# =========================
+# Node.js dependencies
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
 
+# Environment files
 .env
 .env.local
-.env.development
-.env.test
-.env.production
 
-# Build outputs
+# IDE-specific files
+.idea/
+.vscode/
+
+# Temporary and cache files
+*.swp
+*.swo
+*.tmp
+
+# Build files and generated directories
 dist/
 build/
 
-# =========================
-# React / Frontend
-# =========================
-/client/node_modules/
-/client/build/
-/client/dist/
-
-# React env files
-/client/.env
-/client/.env.local
-/client/.env.development
-/client/.env.test
-/client/.env.production
-
-# =========================
-# Logs
-# =========================
-logs/
-*.log
-
-# =========================
-# OS / Editor junk
-# =========================
+# OS-specific files
 .DS_Store
 Thumbs.db
 
-.vscode/
-.idea/
+# Local development files
+*.log
+*.local
 
-# =========================
-# Testing
-# =========================
+# Testing files
 coverage/
-
-# =========================
-# Optional: MongoDB local data
-# (ignore only if you store DB files locally)
-# =========================
-data/
-mongo-data/

@@ -23,7 +23,7 @@ router.get('/getByLocation', protect, getByLocation);
 router.get('/getByStatus', protect, getByStatus);
 router.get('/getByDateRange', protect, getByDateRange);
 router.get('/getByAttributes', protect, getByAttributes);
-router.get('/matches/:id', protect, getMatches);
+router.get('/matches/:id', getMatches);
 router.put('/:id/status', protect, updateItemStatus);
 
 // Chat / Coordination Routes

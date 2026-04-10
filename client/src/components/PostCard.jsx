@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Clock, MessageSquare, AlertCircle, CheckCircle, Tag } from 'lucide-react';
+import { MapPin, Clock, MessageSquare, Tag } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
@@ -21,26 +21,43 @@ export default function PostCard({ item }) {
     createdAt
   } = item;
 
+  // --- 🛠️ HELPER FUNCTION FOR RELATIVE TIME ---
+  const formatRelativeTime = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSecs = Math.floor((now - date) / 1000);
+
+    if (diffInSecs < 60) return "just now";
+
+    const diffInMins = Math.floor(diffInSecs / 60);
+    if (diffInMins < 60) return `${diffInMins} ${diffInMins === 1 ? "minute" : "minutes"} ago`;
+
+    const diffInHours = Math.floor(diffInMins / 60);
+    if (diffInHours < 24) return `${diffInHours} ${diffInHours === 1 ? "hour" : "hours"} ago`;
+
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays} ${diffInDays === 1 ? "day" : "days"} ago`;
+
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
   const isLost = type === 'lost';
   const isOpen = status === 'open';
   
-  // Check if the current user is the one who reported this item
-  const isMyPost = user && item.reportedBy?.userId === user.userId;
-
-  const formattedDate = new Date(createdAt).toLocaleDateString('en-US', {
-    month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
-  });
-
+  // 🚨 SMART OWNERSHIP CHECK: Looks for both ID variants so it works immediately after login
+  const currentUserId = user?.userId || user?.id;
+  const isMyPost = currentUserId && item.reportedBy?.userId === currentUserId;
+  
+  const relativeTime = formatRelativeTime(createdAt);
   const locationName = item.locationId?.name || "Campus Grounds";
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4 }}
       transition={{ duration: 0.2 }}
     >
-      <Card className={`group transition-all ${!isOpen ? 'opacity-70' : ''}`}>
+      <Card className={`group ${!isOpen ? 'opacity-70' : ''}`}>
         <CardContent className="p-6 space-y-4">
           {/* Header */}
           <div className="flex justify-between items-start gap-3">
@@ -55,9 +72,9 @@ export default function PostCard({ item }) {
               )}
             </div>
 
-            <div className="flex items-center gap-1 text-muted-foreground text-sm font-medium">
-              <Clock className="w-4 h-4" />
-              {formattedDate}
+            <div className="flex items-center gap-1 text-muted-foreground text-xs font-bold tracking-tight uppercase">
+              <Clock className="w-3.5 h-3.5" />
+              {relativeTime}
             </div>
           </div>
 
@@ -86,30 +103,28 @@ export default function PostCard({ item }) {
               </div>
             )}
 
-            {/* Image */}
+            {/* Image (Responsive height, no cropping) */}
             {image && (
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                className="w-full h-48 bg-muted rounded-lg mb-4 overflow-hidden border border-border"
-              >
+              <div className="w-full max-h-96 bg-muted rounded-lg mb-4 overflow-hidden border border-border flex items-center justify-center">
                 <img
                   src={image}
                   alt={title}
                   loading="lazy"
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover/link:scale-105"
+                  className="w-full h-auto max-h-96 object-contain"
                 />
-              </motion.div>
+              </div>
             )}
           </Link>
 
           {/* Footer */}
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 pt-4 border-t border-border">
-            <div className="flex items-center gap-2 text-muted-foreground font-medium text-sm">
+            <div className="flex items-center gap-2 text-muted-foreground font-bold text-xs uppercase tracking-wider">
               <MapPin className="w-4 h-4 text-accent" />
               {locationName}
             </div>
 
-            {isOpen && (
+            {/* Hides the button entirely if it is the user's own post */}
+            {isOpen && !isMyPost && (
               <Button
                 onClick={async () => {
                   if (!user) {
@@ -120,10 +135,8 @@ export default function PostCard({ item }) {
                   setIsLoading(true);
                   try {
                     const commentText = isLost ? 'I found this!' : "That's mine!";
-
                     await api.post(`/claim/create/${item._id}`, { proof: commentText });
                     await api.post(`/item/comments/${item._id}`, { text: commentText });
-
                     navigate(`/item/${item._id}`);
                   } catch (error) {
                     console.error('Failed to claim item:', error);
@@ -132,11 +145,10 @@ export default function PostCard({ item }) {
                     setIsLoading(false);
                   }
                 }}
-                disabled={isLoading || isMyPost}
-                title={isMyPost ? "You can't claim your own post" : ''}
+                disabled={isLoading}
                 variant="primary"
                 size="md"
-                className="w-full sm:w-auto"
+                className="w-full sm:w-auto font-bold"
               >
                 <MessageSquare className="w-5 h-5 mr-2" />
                 {isLoading ? 'Claiming...' : (isLost ? 'I Found This' : "That's Mine!")}
