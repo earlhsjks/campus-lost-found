@@ -322,9 +322,12 @@ export default function ItemDetails() {
               </Card>
             </motion.div>
 
-            {user && item.reportedBy?.userId === user.userId && (
+            {user && item && item.reportedBy?.userId === (user.userId || user.id) && (
               <motion.div variants={itemVariants}>
-                <ClaimsPanel itemId={item._id} isItemOwner={true} />
+                <ClaimsPanel
+                  itemId={item._id}
+                  isItemOwner={true}
+                />
               </motion.div>
             )}
           </div>
