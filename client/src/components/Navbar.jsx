@@ -54,22 +54,6 @@ export default function Navbar() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3 }}
           >
-            
-            {/* The "Report Item" Button (Always visible) */}
-            <Button
-              onClick={() => {
-                if (user) {
-                  navigate('/report');
-                } else {
-                  setShowLoginModal(true);
-                }
-              }}
-              variant="ghost"
-              size="md"
-              className="hidden sm:inline-flex text-sm"
-            >
-              Report Item
-            </Button>
 
             {user ? (
               // --- LOGGED IN STATE ---
