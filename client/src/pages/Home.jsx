@@ -55,27 +55,6 @@ export default function MainLayout() {
         
         {/* 🚨 MOBILE TOP ACTIONS & FILTERS */}
         <div className="md:hidden space-y-4 mb-8">
-           <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-              <Button 
-                onClick={() => setActiveFilter(null)}
-                variant={!activeFilter ? 'primary' : 'outline'}
-                size="sm"
-                className="whitespace-nowrap rounded-full"
-              >
-                All Locations
-              </Button>
-              {LOCATIONS.map(loc => (
-                <Button
-                  key={loc}
-                  onClick={() => setActiveFilter(loc)}
-                  variant={activeFilter === loc ? 'primary' : 'outline'}
-                  size="sm"
-                  className="whitespace-nowrap rounded-full"
-                >
-                  {loc}
-                </Button>
-              ))}
-           </div>
            
            <div className="grid grid-cols-2 gap-3">
               <Button 
