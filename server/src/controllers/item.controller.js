@@ -152,7 +152,8 @@ const getById = async (req, res) => {
         const { id } = req.params;
         const item = await Item.findById(id)
             .populate('categoryId', 'name')
-            .populate('locationId', 'name');
+            .populate('locationId', 'name')
+            .populate('userId', 'name')
 
         if (!item) {
             return res.status(404).json({ success: false, message: 'Item not found' });
