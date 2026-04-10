@@ -201,7 +201,7 @@ export default function CreateItemForm() {
               <label className="flex flex-col items-center justify-center h-64 border-3 border-dashed border-border rounded-2xl cursor-pointer bg-muted/20 hover:bg-muted/40 transition-all">
                 <UploadCloud className="w-12 h-12 text-accent/40 mb-3" />
                 <span className="font-bold text-foreground">Click to upload photo</span>
-                <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} required />
+                <input type="file" className="hidden" accept="image/*, .heic, .heif, .jpg, .jpeg, .png, .gif" onChange={handleImageChange} required />
               </label>
             )}
           </CardContent>
