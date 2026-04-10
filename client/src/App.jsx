@@ -9,13 +9,6 @@ import Matches from './pages/Matches';
 import LoginModal from './components/LoginModal';
 import Navbar from './components/Navbar';
 
-const allowedOrigins = [
-  'https://seegson.fun',     // Production
-  'http://localhost:5173',   // Local Development
-  'http://127.0.0.1:5173'    // Alternative Local IP
-];
-
-
 function App() {
   return (
     <AuthProvider>
