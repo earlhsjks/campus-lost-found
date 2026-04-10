@@ -5,7 +5,7 @@ import { useFeed } from '../context/FeedContext';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { UploadCloud, X, ClipboardList, MapPin, Camera } from 'lucide-react';
-import { Button, Input, Textarea, Card, CardContent, CardHeader, CardTitle } from './ui';
+import { Button, Input, Textarea, Card, CardContent } from './ui';
 
 export default function CreateItemForm() {
   const navigate = useNavigate();
@@ -14,12 +14,12 @@ export default function CreateItemForm() {
   const { user } = useAuth();
   const typeFromUrl = searchParams.get('type') || 'lost';
 
-  // Dynamic Data from Backend
+  // Dynamic Data States
   const [categories, setCategories] = useState([]);
   const [locations, setLocations] = useState([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
 
-  // Form State
+  // Form States
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,12 +41,10 @@ export default function CreateItemForm() {
     ? "Provide details about what you've lost so the community can help you find it."
     : "Sharing details about a found item is the first step to getting it home.";
 
-  // Update form type when URL changes
   useEffect(() => {
     setFormData(prev => ({ ...prev, type: typeFromUrl }));
   }, [typeFromUrl]);
 
-  // Fetch Categories and Locations
   useEffect(() => {
     const fetchDropdownData = async () => {
       try {
@@ -54,15 +52,13 @@ export default function CreateItemForm() {
           api.get('/item/getCategories'),
           api.get('/item/getLocations')
         ]);
-
         const extractedCategories = Array.isArray(catRes.data) ? catRes.data : (catRes.data.categories || []);
         const extractedLocations = Array.isArray(locRes.data) ? locRes.data : (locRes.data.locations || []);
-
         setCategories(extractedCategories);
         setLocations(extractedLocations);
       } catch (err) {
         console.error('Failed to load form data', err);
-        setError('Could not load categories/locations. Please refresh.');
+        setError('Could not load form data. Please refresh.');
       } finally {
         setIsLoadingData(false);
       }
@@ -81,12 +77,10 @@ export default function CreateItemForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
     if (!imageFile) return setError('Please upload an image of the item.');
     if (!formData.categoryId || !formData.locationId) return setError('Please select a category and location.');
 
     setIsSubmitting(true);
-
     const payload = new FormData();
     payload.append('type', formData.type);
     payload.append('title', formData.title);
@@ -97,7 +91,6 @@ export default function CreateItemForm() {
     payload.append('attributes', JSON.stringify(formData.attributes));
 
     const result = await addItem(payload);
-
     if (result.success) {
       navigate('/');
     } else {
@@ -110,7 +103,7 @@ export default function CreateItemForm() {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-accent border-t-transparent mb-4" />
-        <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">Preparing Form...</p>
+        <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs text-center">Preparing Form...</p>
       </div>
     );
   }
@@ -121,7 +114,7 @@ export default function CreateItemForm() {
       animate={{ opacity: 1, y: 0 }}
       className="max-w-2xl mx-auto px-4"
     >
-      {/* Dynamic Header */}
+      {/* Main Dynamic Header */}
       <header className="mb-10 text-center md:text-left">
         <motion.h1 
           key={pageTitle}
@@ -153,7 +146,7 @@ export default function CreateItemForm() {
 
       <form onSubmit={handleSubmit} className="space-y-8 pb-20">
         
-        {/* Step 1: Type Selection */}
+        {/* Step 1: Mode Switcher */}
         <div className="flex gap-3">
           {[
             { value: 'lost', label: '🔍 Lost Item' },
@@ -174,18 +167,12 @@ export default function CreateItemForm() {
           ))}
         </div>
 
-        {/* Step 2: Main Info */}
+        {/* Step 2: Primary Info (CardHeader Removed) */}
         <Card className="border-2 border-border shadow-sm">
-          <CardHeader className="border-b">
-            <CardTitle className="flex items-center gap-2">
-              <ClipboardList className="w-5 h-5 text-accent" />
-              Primary Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6 space-y-5">
+          <CardContent className="pt-8 space-y-6">
             <Input
               type="text"
-              label="What is the item?"
+              label="Item Title"
               required
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
@@ -193,7 +180,7 @@ export default function CreateItemForm() {
             />
 
             <Textarea
-              label="Describe it"
+              label="Description"
               required
               rows={4}
               value={formData.description}
@@ -203,15 +190,9 @@ export default function CreateItemForm() {
           </CardContent>
         </Card>
 
-        {/* Step 3: Logistics */}
+        {/* Step 3: Category & Location */}
         <Card className="border-2 border-border shadow-sm">
-          <CardHeader className="border-b">
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-accent" />
-              Logistics
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <CardContent className="pt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="text-sm font-bold text-foreground uppercase tracking-wider">Category</label>
               <select
@@ -240,14 +221,9 @@ export default function CreateItemForm() {
           </CardContent>
         </Card>
 
-        {/* Step 4: Attributes */}
+        {/* Step 4: Additional Attributes */}
         <Card className="border-2 border-border shadow-sm">
-          <CardHeader className="border-b">
-            <CardTitle className="flex items-center gap-2 text-sm text-muted-foreground uppercase tracking-widest">
-              Additional Details (Recommended)
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CardContent className="pt-8 grid grid-cols-1 md:grid-cols-2 gap-5">
             <Input
               label="Color"
               value={formData.attributes.color}
@@ -261,10 +237,10 @@ export default function CreateItemForm() {
               placeholder="e.g. Nike, Apple"
             />
             <Input
-              label="Serial Number / ID"
+              label="Serial / ID Number"
               value={formData.attributes.serialNumber}
               onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, serialNumber: e.target.value }})}
-              placeholder="Any unique numbers?"
+              placeholder="Unique identifiers"
             />
             <Input
               type="date"
@@ -275,15 +251,9 @@ export default function CreateItemForm() {
           </CardContent>
         </Card>
 
-        {/* Step 5: Media */}
+        {/* Step 5: Photo Upload */}
         <Card className="border-2 border-border shadow-sm">
-          <CardHeader className="border-b">
-            <CardTitle className="flex items-center gap-2">
-              <Camera className="w-5 h-5 text-accent" />
-              Upload Photo
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
+          <CardContent className="pt-8">
             {imagePreview ? (
               <div className="relative rounded-2xl overflow-hidden border-4 border-muted shadow-inner">
                 <img src={imagePreview} alt="Preview" className="w-full h-72 object-cover" />
@@ -299,7 +269,7 @@ export default function CreateItemForm() {
               <label className="flex flex-col items-center justify-center w-full h-72 border-3 border-dashed border-border rounded-2xl cursor-pointer bg-muted/20 hover:bg-muted/40 hover:border-accent transition-all">
                 <UploadCloud className="w-16 h-16 text-accent/40 mb-4" />
                 <span className="font-bold text-foreground">Click to select photo</span>
-                <span className="text-xs text-muted-foreground mt-1 uppercase font-bold">Max size: 5MB</span>
+                <span className="text-xs text-muted-foreground mt-1 uppercase font-bold tracking-tighter">Maximum 5MB • PNG, JPG</span>
                 <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} required />
               </label>
             )}
@@ -314,7 +284,7 @@ export default function CreateItemForm() {
           size="lg"
           className="w-full font-bold text-xl py-8 rounded-2xl shadow-xl shadow-accent/20"
         >
-          {isSubmitting ? "Uploading Report..." : `Post ${isLostType ? 'Lost' : 'Found'} Item`}
+          {isSubmitting ? "Uploading Report..." : `Submit ${isLostType ? 'Lost' : 'Found'} Report`}
         </Button>
       </form>
     </motion.div>
