@@ -17,7 +17,7 @@ export default function ClaimsPanel({ itemId, isItemOwner }) {
 
     const fetchClaims = async () => {
       try {
-        const res = await api.get(`/api/claim/item/${itemId}`);
+        const res = await api.get(`/claim/item/${itemId}`);
         setClaims(res.data.claims || []);
       } catch (error) {
         console.error('Failed to fetch claims:', error);
@@ -33,7 +33,7 @@ export default function ClaimsPanel({ itemId, isItemOwner }) {
   const handleApproveClaim = async (claimId) => {
     setApproving(claimId);
     try {
-      await api.put(`/api/claim/approve/${claimId}`);
+      await api.put(`/claim/approve/${claimId}`);
       setClaims(prev =>
         prev.map(c => (c._id === claimId ? { ...c, status: 'approved' } : c))
       );
@@ -51,7 +51,7 @@ export default function ClaimsPanel({ itemId, isItemOwner }) {
 
     setRejecting(claimId);
     try {
-      await api.put(`/api/claim/reject/${claimId}`, { reason });
+      await api.put(`/claim/reject/${claimId}`, { reason });
       setClaims(prev =>
         prev.map(c => (c._id === claimId ? { ...c, status: 'rejected' } : c))
       );
