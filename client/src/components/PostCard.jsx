@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { MapPin, Clock, MessageSquare, Tag } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MapPin, Clock, MessageSquare, Tag, AlertCircle, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
@@ -10,153 +10,141 @@ export default function PostCard({ item }) {
   const { user, setShowLoginModal } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false); // 🚨 New State
 
-  const {
-    type,
-    title,
-    description,
-    image,
-    status,
-    attributes,
-    createdAt
-  } = item;
+  const { type, title, description, image, status, attributes, createdAt } = item;
 
-  // --- 🛠️ HELPER FUNCTION FOR RELATIVE TIME ---
+  // --- RELATIVE TIME HELPER ---
   const formatRelativeTime = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffInSecs = Math.floor((now - date) / 1000);
-
     if (diffInSecs < 60) return "just now";
-
     const diffInMins = Math.floor(diffInSecs / 60);
-    if (diffInMins < 60) return `${diffInMins} ${diffInMins === 1 ? "minute" : "minutes"} ago`;
-
+    if (diffInMins < 60) return `${diffInMins}m ago`;
     const diffInHours = Math.floor(diffInMins / 60);
-    if (diffInHours < 24) return `${diffInHours} ${diffInHours === 1 ? "hour" : "hours"} ago`;
-
+    if (diffInHours < 24) return `${diffInHours}h ago`;
     const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays < 7) return `${diffInDays} ${diffInDays === 1 ? "day" : "days"} ago`;
-
+    if (diffInDays < 7) return `${diffInDays}d ago`;
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
   const isLost = type === 'lost';
   const isOpen = status === 'open';
-  
-  // 🚨 SMART OWNERSHIP CHECK: Looks for both ID variants so it works immediately after login
   const currentUserId = user?.userId || user?.id;
   const isMyPost = currentUserId && item.reportedBy?.userId === currentUserId;
-  
   const relativeTime = formatRelativeTime(createdAt);
-  const locationName = item.locationId?.name || "Campus Grounds";
+
+  // --- THE CLAIM LOGIC ---
+  const handleClaimSubmit = async () => {
+    setIsLoading(true);
+    try {
+      const commentText = isLost ? 'I found this!' : "That's mine!";
+      await api.post(`/claim/create/${item._id}`, { proof: commentText });
+      await api.post(`/item/comments/${item._id}`, { text: commentText });
+      navigate(`/item/${item._id}`);
+    } catch (error) {
+      console.error('Failed to claim item:', error);
+      alert(error.response?.data?.message || 'Failed to claim item.');
+    } finally {
+      setIsLoading(false);
+      setShowConfirmModal(false);
+    }
+  };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
-    >
-      <Card className={`group ${!isOpen ? 'opacity-70' : ''}`}>
-        <CardContent className="p-6 space-y-4">
-          {/* Header */}
-          <div className="flex justify-between items-start gap-3">
-            <div className="flex gap-2">
-              <Badge variant={isLost ? 'primary' : 'success'}>
-                {isLost ? '🔍 Lost' : '📦 Found'}
-              </Badge>
-              {!isOpen && (
-                <Badge variant="secondary">
-                  {status}
+    <>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+        <Card className={`group ${!isOpen ? 'opacity-70' : ''}`}>
+          <CardContent className="p-6 space-y-4">
+            {/* Header */}
+            <div className="flex justify-between items-start gap-3">
+              <div className="flex gap-2">
+                <Badge variant={isLost ? 'primary' : 'success'}>
+                  {isLost ? '🔍 Lost' : '📦 Found'}
                 </Badge>
+                {!isOpen && <Badge variant="secondary">{status}</Badge>}
+              </div>
+              <div className="text-muted-foreground text-xs font-bold uppercase">
+                <Clock className="w-3.5 h-3.5 inline mr-1" /> {relativeTime}
+              </div>
+            </div>
+
+            {/* Link Wrap */}
+            <Link to={`/item/${item._id}`} className="block group/link">
+              <h3 className="font-display font-bold text-2xl mb-2 group-hover/link:text-accent transition-colors">
+                {title}
+              </h3>
+              <p className="text-muted-foreground mb-4 line-clamp-2">{description}</p>
+              {image && (
+                <div className="w-full max-h-96 bg-muted rounded-lg mb-4 overflow-hidden border flex items-center justify-center">
+                  <img src={image} alt={title} className="w-full h-auto max-h-96 object-contain" />
+                </div>
+              )}
+            </Link>
+
+            {/* Footer */}
+            <div className="flex justify-between items-center pt-4 border-t">
+              <div className="flex items-center gap-2 text-muted-foreground font-bold text-xs uppercase">
+                <MapPin className="w-4 h-4 text-accent" /> {item.locationId?.name || "Campus"}
+              </div>
+
+              {isOpen && !isMyPost && (
+                <Button
+                  onClick={() => user ? setShowConfirmModal(true) : setShowLoginModal(true)}
+                  variant="primary" size="md" className="font-bold"
+                >
+                  <MessageSquare className="w-5 h-5 mr-2" />
+                  {isLost ? 'I Found This' : "That's Mine!"}
+                </Button>
               )}
             </div>
+          </CardContent>
+        </Card>
+      </motion.div>
 
-            <div className="flex items-center gap-1 text-muted-foreground text-xs font-bold tracking-tight uppercase">
-              <Clock className="w-3.5 h-3.5" />
-              {relativeTime}
-            </div>
-          </div>
+      {/* 🚨 CONFIRMATION MODAL */}
+      <AnimatePresence>
+        {showConfirmModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setShowConfirmModal(false)}
+              className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+            />
+            
+            {/* Modal Box */}
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              className="relative w-full max-w-md bg-card border-2 border-border p-6 rounded-2xl shadow-2xl"
+            >
+              <button onClick={() => setShowConfirmModal(false)} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
+                <X className="w-5 h-5" />
+              </button>
 
-          {/* Main Content as Link */}
-          <Link to={`/item/${item._id}`} className="block focus:outline-none group/link">
-            <h3 className="font-display font-bold text-2xl mb-2 text-foreground group-hover/link:text-accent transition-colors leading-tight">
-              {title}
-            </h3>
-            <p className="text-muted-foreground mb-4 font-medium leading-relaxed line-clamp-2">
-              {description}
-            </p>
-
-            {/* Attributes */}
-            {attributes && (attributes.brand || attributes.color) && (
-              <div className="flex flex-wrap gap-2 mb-4">
-                {attributes.brand && (
-                  <Badge variant="secondary" className="text-xs">
-                    <Tag className="w-3 h-3 mr-1" /> {attributes.brand}
-                  </Badge>
-                )}
-                {attributes.color && (
-                  <Badge variant="secondary" className="text-xs">
-                    <Tag className="w-3 h-3 mr-1" /> {attributes.color}
-                  </Badge>
-                )}
+              <div className="flex items-center gap-3 mb-4 text-accent">
+                <AlertCircle className="w-8 h-8" />
+                <h2 className="font-display font-bold text-xl uppercase tracking-tight">Confirm Action</h2>
               </div>
-            )}
 
-            {/* Image (Responsive height, no cropping) */}
-            {image && (
-              <div className="w-full max-h-96 bg-muted rounded-lg mb-4 overflow-hidden border border-border flex items-center justify-center">
-                <img
-                  src={image}
-                  alt={title}
-                  loading="lazy"
-                  className="w-full h-auto max-h-96 object-contain"
-                />
+              <p className="text-muted-foreground font-medium mb-6 leading-relaxed">
+                You are claiming that this <span className="text-foreground font-bold">"{title}"</span> belongs to you. 
+                This will notify the reporter and start a conversation. Are you sure?
+              </p>
+
+              <div className="flex gap-3">
+                <Button variant="ghost" className="flex-1" onClick={() => setShowConfirmModal(false)}>
+                  Cancel
+                </Button>
+                <Button variant="primary" className="flex-1 font-bold" onClick={handleClaimSubmit} disabled={isLoading}>
+                  {isLoading ? 'Processing...' : 'Yes, Confirm'}
+                </Button>
               </div>
-            )}
-          </Link>
-
-          {/* Footer */}
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 pt-4 border-t border-border">
-            <div className="flex items-center gap-2 text-muted-foreground font-bold text-xs uppercase tracking-wider">
-              <MapPin className="w-4 h-4 text-accent" />
-              {locationName}
-            </div>
-
-            {/* Hides the button entirely if it is the user's own post */}
-            {isOpen && !isMyPost && (
-              <Button
-                onClick={async () => {
-                  if (!user) {
-                    setShowLoginModal(true);
-                    return;
-                  }
-
-                  setIsLoading(true);
-                  try {
-                    const commentText = isLost ? 'I found this!' : "That's mine!";
-                    await api.post(`/claim/create/${item._id}`, { proof: commentText });
-                    await api.post(`/item/comments/${item._id}`, { text: commentText });
-                    navigate(`/item/${item._id}`);
-                  } catch (error) {
-                    console.error('Failed to claim item:', error);
-                    alert('Failed to claim item. Please try again.');
-                  } finally {
-                    setIsLoading(false);
-                  }
-                }}
-                disabled={isLoading}
-                variant="primary"
-                size="md"
-                className="w-full sm:w-auto font-bold"
-              >
-                <MessageSquare className="w-5 h-5 mr-2" />
-                {isLoading ? 'Claiming...' : (isLost ? 'I Found This' : "That's Mine!")}
-              </Button>
-            )}
+            </motion.div>
           </div>
-        </CardContent>
-      </Card>
-    </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
