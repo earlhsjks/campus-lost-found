@@ -8,6 +8,7 @@ const app = express();
 // --- 🛠️ DYNAMIC CORS CONFIGURATION ---
 const allowedOrigins = [
   'https://seegson.fun',       // Your Production Frontend (Sit here)
+  'https://www.seegson.fun',
   'http://localhost:5173',     // Your Local Vite Frontend
   'http://127.0.0.1:5173'      // Alternative Local IP
 ];
