@@ -103,7 +103,7 @@ export default function PostCard({ item }) {
 
             {/* Footer */}
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 pt-4 border-t border-border">
-              <div className="flex items-center gap-2 text-muted-foreground font-bold text-xs uppercase tracking-wider">
+              <div className="flex items-center gap-2 text-muted-foreground font-bold text-xs tracking-wider">
                 <MapPin className="w-4 h-4 text-accent" /> {locationName}
               </div>
 

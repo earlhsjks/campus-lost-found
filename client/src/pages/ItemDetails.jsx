@@ -184,7 +184,7 @@ export default function ItemDetails() {
                     <h1 className="font-display font-bold text-4xl lg:text-5xl mb-4 gradient-text">{item.title}</h1>
 
                     {/* 🚨 UPDATED INFO BAR: Added User Icon and formatted it cleanly */}
-                    <div className="flex flex-wrap items-center gap-5 text-muted-foreground font-bold text-xs uppercase tracking-tight">
+                    <div className="flex flex-wrap items-center gap-5 text-muted-foreground font-bold text-xs tracking-tight">
                       <div className="flex items-center gap-1.5">
                         <UserIcon className="w-4 h-4 text-accent" />
                         <span>By {item.reportedBy.userId?.name || 'Community Member'}</span>
