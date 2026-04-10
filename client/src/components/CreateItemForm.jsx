@@ -34,7 +34,7 @@ export default function CreateItemForm() {
   // --- 🛠️ DYNAMIC HEADER LOGIC ---
   const isLostType = formData.type === 'lost';
   const pageTitle = isLostType ? "Report a Lost Item" : "Report a Found Item";
-  const pageSubtitle = isLostType 
+  const pageSubtitle = isLostType
     ? "Help the campus community identify your belongings by providing a clear description."
     : "Sharing details about a found item is the quickest way to reunite it with its owner.";
 
@@ -68,7 +68,7 @@ export default function CreateItemForm() {
     e.preventDefault();
     setError('');
     if (!imageFile) return setError('Please upload a photo.');
-    
+
     setIsSubmitting(true);
     const payload = new FormData();
     payload.append('type', formData.type);
@@ -91,10 +91,10 @@ export default function CreateItemForm() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-2xl mx-auto pb-20">
-      
+
       {/* 🚨 DYNAMIC HEADER: Now inside the form for full control */}
       <header className="mb-10">
-        <motion.h1 
+        <motion.h1
           key={pageTitle}
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -115,9 +115,8 @@ export default function CreateItemForm() {
               key={mode}
               type="button"
               onClick={() => setFormData({ ...formData, type: mode })}
-              className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
-                formData.type === mode ? 'bg-background shadow-lg text-accent' : 'text-muted-foreground hover:text-foreground'
-              }`}
+              className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 ${formData.type === mode ? 'bg-background shadow-lg text-accent' : 'text-muted-foreground hover:text-foreground'
+                }`}
             >
               {mode === 'lost' ? '🔍 Lost' : '📦 Found'}
             </button>
@@ -182,10 +181,10 @@ export default function CreateItemForm() {
         {/* Details Card */}
         <Card className="border-2 shadow-sm">
           <CardContent className="pt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input label="Color" placeholder="Primary colors" value={formData.attributes.color} onChange={(e) => setFormData({...formData, attributes: {...formData.attributes, color: e.target.value}})} />
-            <Input label="Brand" placeholder="e.g. Apple, Nike" value={formData.attributes.brand} onChange={(e) => setFormData({...formData, attributes: {...formData.attributes, brand: e.target.value}})} />
-            <Input label="Serial / ID" placeholder="If applicable" value={formData.attributes.serialNumber} onChange={(e) => setFormData({...formData, attributes: {...formData.attributes, serialNumber: e.target.value}})} />
-            <Input type="date" label={isLostType ? "Date Lost" : "Date Found"} value={formData.attributes.lastSeen} onChange={(e) => setFormData({...formData, attributes: {...formData.attributes, lastSeen: e.target.value}})} />
+            <Input label="Color" placeholder="Primary colors" value={formData.attributes.color} onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, color: e.target.value } })} />
+            <Input label="Brand" placeholder="e.g. Apple, Nike" value={formData.attributes.brand} onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, brand: e.target.value } })} />
+            <Input label="Serial / ID" placeholder="If applicable" value={formData.attributes.serialNumber} onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, serialNumber: e.target.value } })} />
+            <Input type="date" label={isLostType ? "Date Lost" : "Date Found"} value={formData.attributes.lastSeen} onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, lastSeen: e.target.value } })} />
           </CardContent>
         </Card>
 
@@ -201,8 +200,7 @@ export default function CreateItemForm() {
               <label className="flex flex-col items-center justify-center h-64 border-3 border-dashed border-border rounded-2xl cursor-pointer bg-muted/20 hover:bg-muted/40 transition-all">
                 <UploadCloud className="w-12 h-12 text-accent/40 mb-3" />
                 <span className="font-bold text-foreground">Click to upload photo</span>
-                <input type="file" className="hidden" accept="image/*, .heic, .heif, .jpg, .jpeg, .png, .gif" onChange={handleImageChange} required />
-              </label>
+                <input type="file" className="hidden" accept="image/*, .heic, .heif, .jpg, .jpeg, .png" onChange={handleImageChange} required />              </label>
             )}
           </CardContent>
         </Card>
