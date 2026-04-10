@@ -157,8 +157,8 @@ export default function ItemDetails() {
                       <Badge variant={isLost ? 'primary' : 'success'}>
                         {isLost ? '🔍 Lost Item' : '📦 Found Item'}
                       </Badge>
-                      <Badge variant={item.status === 'resolved' ? 'success' : 'secondary'}>
-                        {item.status === 'resolved' ? '✓ Resolved' : 'Active'}
+                      <Badge variant={item.status === 'claimed' ? 'success' : 'secondary'}>
+                        {item.status === 'claimed' ? '✓ Resolved' : 'Active'}
                       </Badge>
                     </div>
 
