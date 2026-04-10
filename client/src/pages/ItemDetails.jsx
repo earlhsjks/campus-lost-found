@@ -187,7 +187,7 @@ export default function ItemDetails() {
                     <div className="flex flex-wrap items-center gap-5 text-muted-foreground font-bold text-xs uppercase tracking-tight">
                       <div className="flex items-center gap-1.5">
                         <UserIcon className="w-4 h-4 text-accent" />
-                        <span>By {item.reportedBy?.name || 'Community Member'}</span>
+                        <span>By {item.reportedBy.userId?.name || 'Community Member'}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <MapPin className="w-4 h-4 text-accent" />
