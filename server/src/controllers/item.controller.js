@@ -289,7 +289,7 @@ const getByAttributes = async (req, res) => {
 const getMatches = async (req, res) => {
     try {
         const { id } = req.params;
-        
+
         // Fetch the item
         const item = await Item.findById(id);
         if (!item) {
@@ -297,27 +297,27 @@ const getMatches = async (req, res) => {
         }
 
         // THE FIX 1: Search BOTH columns using $or
-        const matches = await Match.find({ 
+        const matches = await Match.find({
             $or: [{ itemId: id }, { matchedItemId: id }],
-            status: 'potential' 
+            status: 'potential'
         })
-        // THE FIX 2: Populate BOTH sides of the match
-        .populate({
-            path: 'itemId matchedItemId', 
-            select: 'type title description image categoryId locationId attributes createdAt reportedBy',
-            populate: [
-                { path: 'categoryId', select: 'name' },
-                { path: 'locationId', select: 'name' }
-            ]
-        })
-        .sort({ score: -1 })
-        .limit(5);
+            // THE FIX 2: Populate BOTH sides of the match
+            .populate({
+                path: 'itemId matchedItemId',
+                select: 'type title description image categoryId locationId attributes createdAt reportedBy',
+                populate: [
+                    { path: 'categoryId', select: 'name' },
+                    { path: 'locationId', select: 'name' }
+                ]
+            })
+            .sort({ score: -1 })
+            .limit(5);
 
         // THE FIX 3: Conditionally map the "other" item
         const formattedMatches = matches.map(m => {
             // Figure out which item is the one we are currently viewing
             const isSourceItem = m.itemId && m.itemId._id.toString() === id;
-            
+
             // Grab the item sitting on the other side of the relationship
             const otherItem = isSourceItem ? m.matchedItemId : m.itemId;
 
@@ -430,6 +430,7 @@ const forceMatch = async (req, res) => {
             return res.status(403).json({ success: false, message: 'Unauthorized to force-match these items.' });
         }
 
+        // Check for existing match record first
         const existingMatch = await Match.findOne({
             $or: [
                 { itemId, matchedItemId },
@@ -437,14 +438,29 @@ const forceMatch = async (req, res) => {
             ]
         });
 
-        const score = existingMatch?.score ?? 999;
+        // If no existing match, run the scoring algorithm to get a proper score + reasons
+        let score = 999;
+        let reasons = ['Manually matched by user'];
+
+        if (existingMatch) {
+            score = existingMatch.score ?? 999;
+            reasons = existingMatch.reasons?.length ? existingMatch.reasons : ['Manually matched by user'];
+        } else {
+            const { scoreMatch } = require('../utils/matching.util');
+            const lost = item.type === 'lost' ? item : matchedItem;
+            const found = item.type === 'found' ? item : matchedItem;
+            const result = scoreMatch(lost, found);
+            score = result.score ?? 999;
+            reasons = result.reasons?.length ? result.reasons : ['Manually matched by user'];
+        }
 
         const confirmedMatch = await Match.findOneAndUpdate(
             { itemId, matchedItemId },
-            { itemId, matchedItemId, score, status: 'confirmed' },
+            { itemId, matchedItemId, score, reasons, status: 'confirmed' },
             { upsert: true, new: true }
         );
 
+        // Dismiss all other matches involving either item
         await Match.updateMany({
             _id: { $ne: confirmedMatch._id },
             $or: [
