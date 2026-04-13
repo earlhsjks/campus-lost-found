@@ -13,7 +13,6 @@ const storage = new CloudinaryStorage({
     cloudinary: require('cloudinary'), 
     params: {
         folder: 'lost_and_found_items',
-        allowed_formats: ['jpg', 'jpeg', 'png', 'heic', 'heif'],
         transformation: [
             {
                 width: 800,
