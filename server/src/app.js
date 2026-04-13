@@ -40,7 +40,7 @@ app.use('/api/claim', require('./routes/claim.route')); // Fixed missing '/'
 app.use('/api/notification', require('./routes/notification.route'));
 
 app.get('/', (req, res) => {
-  res.send('Golden Bull Royals API Running');
+  res.send('Campus Lost Found API Running');
 });
 
 module.exports = app;
