@@ -25,7 +25,7 @@ router.get('/getByDateRange', protect, getByDateRange);
 router.get('/getByAttributes', protect, getByAttributes);
 router.get('/matches/:id', getMatches);
 router.put('/:id/status', protect, updateItemStatus);
-router.post('/force-match/:id', async (req, res) => {
+router.get('/force-match/:id', async (req, res) => {
     try {
         const { id } = req.params;
         
