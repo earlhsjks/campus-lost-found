@@ -29,19 +29,23 @@ router.get('/force-match/:id', async (req, res) => {
     try {
         const { id } = req.params;
         
-        // Push the ID directly into your Redis Queue
-        // Note: Ensure your 'itemQueue' is initialized and connected
+        // 🚨 IMPORTANT: Ensure itemQueue is imported/defined in this file
+        if (!itemQueue) {
+            return res.status(500).json({ success: false, message: "Queue not initialized" });
+        }
+
+        // Push to Redis
         await itemQueue.add('match-item', { itemId: id });
 
         res.status(200).json({ 
             success: true, 
-            message: `Match job queued for item ${id}` 
+            message: `Match job queued for item ${id}. Check your worker logs!` 
         });
     } catch (error) {
-        console.error('Force Match Error:', error);
+        console.error('Force Match GET Error:', error);
         res.status(500).json({ 
             success: false, 
-            message: 'Failed to queue match job' 
+            message: error.message 
         });
     }
 });
