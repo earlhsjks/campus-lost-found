@@ -397,6 +397,82 @@ const updateItemStatus = async (req, res) => {
     }
 };
 
+const forceMatch = async (req, res) => {
+    try {
+        const { itemId, matchedItemId } = req.body;
+
+        if (!itemId || !matchedItemId) {
+            return res.status(400).json({ success: false, message: 'itemId and matchedItemId are required.' });
+        }
+
+        if (itemId === matchedItemId) {
+            return res.status(400).json({ success: false, message: 'An item cannot be matched with itself.' });
+        }
+
+        const [item, matchedItem] = await Promise.all([
+            Item.findById(itemId),
+            Item.findById(matchedItemId)
+        ]);
+
+        if (!item || !matchedItem) {
+            return res.status(404).json({ success: false, message: 'One or both items were not found.' });
+        }
+
+        if (item.type === matchedItem.type) {
+            return res.status(400).json({ success: false, message: 'Force-match requires one lost and one found item.' });
+        }
+
+        const isAdmin = req.user?.role === 'admin';
+        const userId = req.user?._id?.toString();
+        const ownsEitherItem = item.reportedBy?.userId?.toString() === userId || matchedItem.reportedBy?.userId?.toString() === userId;
+
+        if (!isAdmin && !ownsEitherItem) {
+            return res.status(403).json({ success: false, message: 'Unauthorized to force-match these items.' });
+        }
+
+        const existingMatch = await Match.findOne({
+            $or: [
+                { itemId, matchedItemId },
+                { itemId: matchedItemId, matchedItemId: itemId }
+            ]
+        });
+
+        const score = existingMatch?.score ?? 999;
+
+        const confirmedMatch = await Match.findOneAndUpdate(
+            { itemId, matchedItemId },
+            { itemId, matchedItemId, score, status: 'confirmed' },
+            { upsert: true, new: true }
+        );
+
+        await Match.updateMany({
+            _id: { $ne: confirmedMatch._id },
+            $or: [
+                { itemId: { $in: [itemId, matchedItemId] } },
+                { matchedItemId: { $in: [itemId, matchedItemId] } }
+            ]
+        }, {
+            $set: { status: 'dismissed' }
+        });
+
+        item.status = 'matched';
+        item.matchedItemId = matchedItem._id;
+        matchedItem.status = 'matched';
+        matchedItem.matchedItemId = item._id;
+
+        await Promise.all([item.save(), matchedItem.save()]);
+
+        res.status(200).json({
+            success: true,
+            message: 'Items force-matched successfully.',
+            match: confirmedMatch
+        });
+    } catch (error) {
+        console.error('Error force-matching items:', error);
+        res.status(500).json({ success: false, message: `Server error: ${error.message}` });
+    }
+};
+
 module.exports = {
     create,
     update,
@@ -414,5 +490,6 @@ module.exports = {
     getMatches,
     getLocations,
     getCategories,
-    updateItemStatus
+    updateItemStatus,
+    forceMatch
 };

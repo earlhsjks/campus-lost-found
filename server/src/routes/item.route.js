@@ -5,7 +5,7 @@ const {
     create, update, deleteItem, updateStatus, getById, 
     getByUser, getByCategory, getByLocation, getByStatus,
     getByDateRange, getByAttributes, getAll, getMatches,
-    getLocations, getCategories,updateItemStatus } = require('../controllers/item.controller');
+    getLocations, getCategories, updateItemStatus, forceMatch } = require('../controllers/item.controller');
 const { getItemComments, addComment } = require('../controllers/comment.controller');
 const { upload } =  require('../config/cloudinary');
 
@@ -24,6 +24,7 @@ router.get('/getByStatus', protect, getByStatus);
 router.get('/getByDateRange', protect, getByDateRange);
 router.get('/getByAttributes', protect, getByAttributes);
 router.get('/matches/:id', getMatches);
+router.post('/force-match', protect, forceMatch);
 router.put('/:id/status', protect, updateItemStatus);
 router.get('/force-match/:id', async (req, res) => {
     try {
