@@ -25,6 +25,26 @@ router.get('/getByDateRange', protect, getByDateRange);
 router.get('/getByAttributes', protect, getByAttributes);
 router.get('/matches/:id', getMatches);
 router.put('/:id/status', protect, updateItemStatus);
+router.post('/force-match/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Push the ID directly into your Redis Queue
+        // Note: Ensure your 'itemQueue' is initialized and connected
+        await itemQueue.add('match-item', { itemId: id });
+
+        res.status(200).json({ 
+            success: true, 
+            message: `Match job queued for item ${id}` 
+        });
+    } catch (error) {
+        console.error('Force Match Error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Failed to queue match job' 
+        });
+    }
+});
 
 // Chat / Coordination Routes
 router.get('/comments/:id', getItemComments);
